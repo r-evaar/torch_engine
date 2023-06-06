@@ -1,0 +1,13 @@
+**/venv
+**/.ipynb_checkpoints
+**/.virtual_documents
+**/data
+**/models
+**/runs
+activate_env.bat
+run_jupyter.bat
+**/.idea
+**/__pycache__
+**/build
+**/dist
+**.docx
