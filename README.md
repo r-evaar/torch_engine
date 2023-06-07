@@ -26,11 +26,11 @@ data_path = data_setup.download_data(directory=<project_dir/all_data_directory>,
 3. Multiprocessing-Ready DataLoaders
 
 ```Python
-loader_1_1, loader_1_2, loader_2, classes = data_setup.create_dataloaders(
+loader_1_1, loader_1_2, loader_2, ..., classes = data_setup.create_dataloaders(
     directories=[dir_1, dir_2, ...], 
     transforms=[transf_1, transf_2, ...], 
-    splits=[(ratio_1, ratio_2), None], 
-    shuffles=[True, False],
+    splits=[(ratio_1, ratio_2), None, ...], 
+    shuffles=[True, False, ...],
     batch_size=<batch_size>, 
     num_workers=<worker_per_loader>, 
     device=<cuda|cpu>
