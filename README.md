@@ -26,11 +26,11 @@ data_path = data_setup.download_data(directory=<project_dir/all_data_directory>,
 3. Multiprocessing-Ready DataLoaders
 
 ```Python
-loader_1_1, loader_1_2, loader_2, classes = data_setup.create_dataloaders(
+loader_1_1, loader_1_2, loader_2, ..., classes = data_setup.create_dataloaders(
     directories=[dir_1, dir_2, ...], 
     transforms=[transf_1, transf_2, ...], 
-    splits=[(ratio_1, ratio_2), None], 
-    shuffles=[True, False],
+    splits=[(ratio_1, ratio_2), None, ...], 
+    shuffles=[True, False, ...],
     batch_size=<batch_size>, 
     num_workers=<worker_per_loader>, 
     device=<cuda|cpu>
@@ -42,7 +42,7 @@ loader_1_1, loader_1_2, loader_2, classes = data_setup.create_dataloaders(
 ```Python
 model = models.fine_tune_on_classes(<pre_trained_model>, target=<class_names_list>, input_size=(height, width), **kw)
 
-model = TinyVGG(input_shape=(channels, height, width), classes=<pre_trained_model>, **kw)
+model = models.TinyVGG(input_shape=(channels, height, width), classes=<pre_trained_model>, **kw)
 ```
 
 5. Classification Training Manager
@@ -67,10 +67,10 @@ engine.inference(model, <path/to/image(s)>, <class_names_list>, n=4, **kw)
 
 ```Python
 experiment_space = {
-    'model':        models,
-    'data':         [dataset_1, dataset_2],
-    'epochs':       [5, 10],
-    'dropout':      [0.1, 0.2, 0.3],
+    'model':        [model_1, model_2, ...],
+    'data':         [dataset_1, dataset_2, ...],
+    'epochs':       [5, 10, ...],
+    'dropout':      [0.1, 0.2, 0.3, ...],
 }
 
 experiments = utils.prepare_experiments(experiment_space)
