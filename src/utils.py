@@ -1,15 +1,13 @@
-
+from math import ceil
 from matplotlib import pyplot as plt
-from .data_setup import download_data
+from pathlib import Path
+from torch import nn, save
 import torchinfo
 import itertools
 
 """
 File containing various utility functions for PyTorch model training.
 """
-
-from pathlib import Path
-from torch import nn, save
 
 def save_model(model:nn.Module, directory:str='.', filename:str='model.pt'):
     """Saves a PyTorch model to a target directory
@@ -28,7 +26,7 @@ def save_model(model:nn.Module, directory:str='.', filename:str='model.pt'):
 
     assert filename.endswith('.pt') or filename.endswith('.pth'), \
         "filename should end with '.pt' or '.pth"
-
+    
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     save_path = directory / filename
@@ -36,10 +34,12 @@ def save_model(model:nn.Module, directory:str='.', filename:str='model.pt'):
     print(f"Saving model into '{save_path}'")
     save(obj=model.state_dict(), f=save_path)
 
+    print(f"Total size = {save_path.stat().st_size / 1024**2:.2f} MB")
+
 def plot_progress(progress: dict):
     fig, ax = plt.subplots(1,2)
     fig.set_figwidth(15)
-
+    
     x_b = progress['batch']['x']
     x_t = progress['train']['x']
     x_v = progress['val']['x']
@@ -73,7 +73,8 @@ def summary(input_size):
             input_size=input_size,
             col_names=["input_size", "output_size", "num_params", "trainable"],
             col_width=20,
-            row_settings=["depth"]
+            row_settings=["depth"],
+            depth=5
         ))
     return method
 
@@ -105,17 +106,24 @@ class ExpWrapper:
         return self.obj
 
 
-def two_datasets():
-    urls = [
-        'https://github.com/mrdbourke/pytorch-deep-learning/raw/main/data/pizza_steak_sushi.zip',
-        'https://github.com/mrdbourke/pytorch-deep-learning/raw/main/data/pizza_steak_sushi_20_percent.zip'
-    ]
+def visualize(loader, n=5, classes=None):
+    col = 3
+    row = ceil(n / col)
+    i = 0
+    stop = False
+    for x, y in loader:
+        if stop: break
+        for x_i, y_i in zip(x, y):
+            if i >= n:
+                stop = True
+                break
+            plt.subplot(row, col, i+1)
+            plt.imshow(x_i.detach().cpu().permute(1, 2, 0))
+            title = y_i.item()
+            if classes:
+                title = classes[title]
+            plt.title(title)
+            plt.axis('off')
 
-    names = ['PSS_0.1', 'PSS_0.2']
-
-    data_paths = []
-    for name, url in zip(names, urls):
-        download_data('data', name, url)
-        data_paths.append(ExpWrapper(Path('data') / name, name))
-    return data_paths
-
+            i += 1
+    plt.show()

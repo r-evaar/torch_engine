@@ -18,7 +18,7 @@ Contains functions for creating and managing PyTorch Datasets &  DataLoader
 for image classification problems.
 """
 
-
+ 
 def _write_to_file(f, response):
     block_size = 1024**2
     unit = 'MiB'
@@ -35,7 +35,7 @@ def _write_to_file(f, response):
         bar.update()
 
     bar.close()
-    assert bar.n == ceil(total_size), 'Network Failure: download file corrupted'
+    assert bar.n == ceil(total_size), 'Download Failure: downloaded file is corrupted'
 
 
 def download_data(directory: str,
@@ -79,7 +79,7 @@ def download_data(directory: str,
         return data_path
 
     print(f"[INFO] Did not find '{data_path}' directory. Creating one:")
-    download_file = data_path / 'data_file.zip'
+    download_file = data_path / f'data_file{f_frmt}'
 
     # Download
     data_path.mkdir(parents=True, exist_ok=True)
@@ -113,7 +113,7 @@ class ClassificationSet(Dataset):
         dtype:
             data type of input tensors
     """
-
+    
     def __init__(self, root: str | Path,
                  transform: Compose = None,
                  classes: list = None,
@@ -151,7 +151,6 @@ class ClassificationSet(Dataset):
         # Get PIL image object at i
         filename = self.image_filenames[i]
         x = Image.open(fp=filename)
-
         if self.transform:
             x = self.transform(x)
 

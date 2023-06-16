@@ -2,11 +2,19 @@
 modular engine to provide high-level interface for different CNN tasks
 
 ### [NOTE] Work in progress
-Currently supported tasks:
-* CNN multi-classification
+Supported tasks:
+* multiclass classification
+* automated experiments
+
+Supported Modules:
+* CNN
+* ViT
 ___
 
-A development prototype is available at `interface.ipynb` notebook
+Development/Evaluation notebooks are available at:
+* `interface_CNN.ipynb`
+* `interface_ViT.ipynb`
+* `interface_Automated_Experiment.ipynb`
 
 #### Supported Features:
 

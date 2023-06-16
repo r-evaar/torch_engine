@@ -96,23 +96,27 @@ class ClassTrainer:
             lr_decay: float = 0.975,
             writer=True,
             verbose=True,
-            progress=True
+            progress=False,
+            optimizer_kwargs=None,
     ):
 
         self.model = model
         self.device = list(model.parameters())[0].device
 
-        self.optimizer = optim(model.parameters(), lr=lr)
+        if optimizer_kwargs is None:
+            optimizer_kwargs = {}
+        self.optimizer = optim(model.parameters(), lr=lr, **optimizer_kwargs)
+
         self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=lr_decay)
         self.criterion = criterion
         self.writer = writer
         self.verbose = verbose
+        self.verbose_state = {'first_batch': True, 'b': ''}
 
         d = lambda: {'x': [], 'loss': [], 'acc': []}
         self.progress = {'batch': d(), 'train': d(), 'val': d(), 'iter': 0} if progress else None
         self.writer_fn = SummaryWriter if writer else None
 
-        self.first_batch = None
         self.m = None
         self.epoch = 0
 
@@ -130,12 +134,15 @@ class ClassTrainer:
 
             p = f' [{(i+1)*100/n_b:05.1f}%]'  # Epoch progress percentage | Example: [078.5%]
             v = f" batch_loss={loss:.2f}"  # Loss @ iteration i | Example: batch_loss=0.93
-            b = '' if self.first_batch else '\b' * (len(v) + len(p))  # Backspace array.
-                                                                      # None @ first iteration of current epoch
-            self.first_batch = False  # Resets to True in the start of next epoch
+            if self.verbose_state['first_batch']:
+                self.verbose_state['b'] = ''
+                self.verbose_state['first_batch'] = False  # Resets to True in the start of next epoch
 
             # Display batch progress
-            print(f'{b}', end='')
+            print(f'{self.verbose_state["b"]}', end='')
+            # Backspace array. None @ first iteration of current epoch
+            self.verbose_state['b'] = '\b' * (len(v) + len(p))
+
             print('#' if i % n == 0 else '', end='')
             print(f'{p}{v if i < (n_b-1) else ""}', end='', flush=True)
 
@@ -196,16 +203,14 @@ class ClassTrainer:
         for loader in loaders:
             if not loader:
                 continue  # In case no validation loader
-            loss = 0
-            acc = 0
-            m = len(loader.dataset)
-            for x, y in loader:
-                x, y = x.to(self.device), y.to(self.device)
-                yp = self.model(x)
 
-                r = x.shape[0]/m
-                loss += self.criterion(yp, y).item() * r
-                acc += self.accuracy(yp, y) * r
+            x, y = next(iter(loader))
+            x, y = x.to(self.device), y.to(self.device)
+            yp = self.model(x)
+
+            loss = self.criterion(yp, y).item()
+            acc = self.accuracy(yp, y)
+
             losses.append(loss)
             accs.append(acc)
         return losses, accs
@@ -269,7 +274,7 @@ class ClassTrainer:
         # Verbose Requirements
         n_b = len(loader)
         n = ceil(n_b/10)
-        self.first_batch = True
+        self.verbose_state['first_batch'] = True
 
         e_time_0 = tic()
         b_avg_time = 0
@@ -298,7 +303,6 @@ class ClassTrainer:
         self.verbose_step('train', e_loss, e_acc, b_avg_time, e_time_0)
         self.progress_step('train', e_loss, e_acc)
         self.writer_step('train', e_loss, e_acc)
-
 
     def val_epoch(self, loader):
         self.model.eval()
@@ -394,8 +398,6 @@ class ClassTrainer:
                 self.writer.add_text(target, text)
 
             self.writer.flush()
-
-
 
 
 def inference(model: nn.Module,
