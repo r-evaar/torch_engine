@@ -1,5 +1,5 @@
 # Torch Engine
-modular engine to provide high-level interface for different CNN tasks
+modular engine to provide high-level interface for different vision tasks
 
 ### [NOTE] Work in progress
 Currently supported tasks:
